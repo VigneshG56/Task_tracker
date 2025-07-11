@@ -3,13 +3,13 @@ const Task = require('../models/Task');
 // Create a new task
 const createTask = async (req, res) => {
   try {
-    const { title } = req.body;
+    const { title, dueDate } = req.body;
 
     if (!title || title.trim() === '') {
       return res.status(400).json({ message: 'Title is required' });
     }
 
-    const task = await Task.create({ title });
+    const task = await Task.create({ title,dueDate });
     res.status(201).json(task);
   } catch (error) {
     console.error('Error creating task:', error.message);

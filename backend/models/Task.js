@@ -10,7 +10,11 @@ const Task = sequelize.define('Task',{
     completed: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
-    }
+    },
+    dueDate: {
+    type: DataTypes.DATE,
+    allowNull: true, // User can optionally skip due date
+  },
 }); 
 
 //Export the model

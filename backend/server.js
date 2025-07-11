@@ -34,7 +34,7 @@ app.use('/api', taskRoutes);
 connectDB(); 
 
 // sync the task model with the db
-Task.sync()
+Task.sync({alter:true})
    .then(() => console.log('task table synced'));
  
 
