@@ -1,41 +1,38 @@
-
 const express = require('express');
 const router = express.Router();
-const { createTask , getAllTasks ,deleteTask,updateTask } = require('../controllers/taskController');
+const {
+  createTask,
+  getAllTasks,
+  deleteTask,
+  updateTask,
+} = require('../controllers/taskController');
 
-// Console to check if route file is loaded
-console.log(" taskRoutes.js loaded ");
+const authenticateToken = require('../middleware/authMiddleware'); //  Protect routes
 
-// Route to create a new task with debug log
-router.post('/tasks', (req, res, next) => {
-  console.log(" POST /api/tasks route was triggered");
-  next(); // pass control to createTask()
-}, createTask); 
+console.log("taskRoutes.js loaded");
 
-
-// route to get the all tasks
-
-router.get('/tasks',(req, res, next) =>{
-  console.log("Fetched all tasks");
+// Route to create a new task
+router.post('/tasks', authenticateToken, (req, res, next) => {
+  console.log("POST /api/tasks route was triggered");
   next();
-},getAllTasks);  
+}, createTask);
 
-// route to delete paticular task by its id
-
-router.delete('/tasks/:id', (req, res, next) => {
-  console.log(" DELETE /api/tasks/:id ");
+// Route to get all tasks
+router.get('/tasks', authenticateToken, (req, res, next) => {
+  console.log("GET /api/tasks");
   next();
-}, deleteTask); 
+}, getAllTasks);
 
-// route to updat the task
-
-router.put('/tasks/:id', (req,res, next) =>{
-  console.log("Put /api/tasks/:id ");
+// Route to delete a task
+router.delete('/tasks/:id', authenticateToken, (req, res, next) => {
+  console.log("DELETE /api/tasks/:id");
   next();
-},updateTask);  
+}, deleteTask);
 
-
-
-
+// Route to update a task
+router.put('/tasks/:id', authenticateToken, (req, res, next) => {
+  console.log("PUT /api/tasks/:id");
+  next();
+}, updateTask);
 
 module.exports = router;

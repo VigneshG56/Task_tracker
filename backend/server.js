@@ -1,53 +1,33 @@
 const express = require('express');
-const dotenv = require('dotenv');
 const cors = require('cors');
-const { connectDB } = require('./config/db');
-const Task = require('./models/Task');
+const dotenv = require('dotenv');
+const { sequelize } = require('./config/db');
+const authRoutes = require('./routes/authRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 
-//load env variables from .env
+dotenv.config();
 
-dotenv.config(); 
-
-
-// create express app
 const app = express();
 
-// middleware to parse JSON and allow frontend to connect
+// Middlewares
 app.use(cors());
-app.use(express.json());   
+app.use(express.json());
 
-// Error handler for bad JSON input
-app.use((err, req, res, next) => {
-  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
-    console.error(' Invalid JSON received:', err.message);
-    return res.status(400).json({ message: 'Invalid JSON input' });
-  }
-  next();
-});
-
-
-//register routes
+// Routes
+app.use('/api', authRoutes);
 app.use('/api', taskRoutes);
 
-// db connection psql
-connectDB(); 
-
-// sync the task model with the db
-Task.sync({alter:true})
-   .then(() => console.log('task table synced'));
- 
-
-   
-
-//test route
-app.get('/',(req, res) => {
-    res.send('Backend is running');
-});
-
-// start the server 
+// Sync DB and start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`server running at http://localhost:${PORT}`);
-});
 
+sequelize
+  .sync({ alter: true }) // Use force: true only during dev reset (DROPS DATA!)
+  .then(() => {
+    console.log('All tables synced');
+    app.listen(PORT, () => {
+      console.log(`Server running at http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('Error syncing database:', err.message);
+  });

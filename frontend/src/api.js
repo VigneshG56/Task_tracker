@@ -5,6 +5,15 @@ const API = axios.create({
   baseURL: 'http://localhost:5000/api',
 });
 
+// stored using local storage
+API.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token'); 
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 // GET: Fetch all tasks
 export const fetchTasks = () => API.get('/tasks');
 
@@ -18,3 +27,4 @@ export const deleteTask = (id) => API.delete(`/tasks/${id}`);
 export const updateTask = (id, updatedData) =>
   API.put(`/tasks/${id}`, updatedData);
 
+export default API;

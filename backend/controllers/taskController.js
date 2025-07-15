@@ -9,7 +9,7 @@ const createTask = async (req, res) => {
       return res.status(400).json({ message: 'Title is required' });
     }
 
-    const task = await Task.create({ title,dueDate });
+    const task = await Task.create({ title,dueDate,userId: req.user.id, });
     res.status(201).json(task);
   } catch (error) {
     console.error('Error creating task:', error.message);
@@ -19,68 +19,74 @@ const createTask = async (req, res) => {
 
 // get all task 
 
+// Get all tasks for the authenticated user
 const getAllTasks = async (req, res) => {
   try {
-    const tasks = await Task.findAll();  // Fetch all rows
-    res.status(200).json(tasks);         // Send as JSON
+    const tasks = await Task.findAll({
+      where: { userId: req.user.id },
+      order: [['createdAt', 'DESC']],
+    });
+    res.json(tasks);
   } catch (error) {
     console.error('Error fetching tasks:', error.message);
     res.status(500).json({ message: 'Server Error' });
   }
-};  
-//  Delete task by ID
+}; 
+
+
+  
+// Delete task only if it belongs to the logged-in user
 const deleteTask = async (req, res) => {
   try {
-    const id = req.params.id;  // Get ID from URL
+    const task = await Task.findOne({
+      where: {
+        id: req.params.id,
+        userId: req.user.id,
+      },
+    });
 
-    // Check if task exists
-    const task = await Task.findByPk(id);
     if (!task) {
-      return res.status(404).json({ message: 'Task not found' });
+      return res.status(404).json({ message: 'Task not found or unauthorized' });
     }
 
-    // Delete the task
-    await task.destroy(); 
-
-    res.status(200).json({ message: 'Task deleted successfully' });
+    await task.destroy();
+    res.json({ message: 'Task deleted successfully' });
   } catch (error) {
     console.error('Error deleting task:', error.message);
     res.status(500).json({ message: 'Server Error' });
   }
 };
 
-// Update task (mark as complete/incomplete)
+
+// Update task only if it belongs to the logged-in user
 const updateTask = async (req, res) => {
   try {
-    const id = req.params.id;
-    const { completed } = req.body;
-
-    const task = await Task.findByPk(id);  // Find task by ID
+    const task = await Task.findOne({
+      where: {
+        id: req.params.id,
+        userId: req.user.id,
+      },
+    });
 
     if (!task) {
-      return res.status(404).json({ message: 'Task not found' });
-    }   
-
-        if (typeof completed !== 'boolean') {
-      return res.status(400).json({ message: 'Completed must be true or false' });
+      return res.status(404).json({ message: 'Task not found or unauthorized' });
     }
 
-    task.completed = completed;
+    const { title, completed, dueDate } = req.body;
+
+    if (title !== undefined) task.title = title;
+    if (completed !== undefined) task.completed = completed;
+    if (dueDate !== undefined) task.dueDate = dueDate;
+
     await task.save();
-
-
-    
-
-    // Update the completed status
-    task.completed = completed;
-    await task.save();
-
-    res.status(200).json({ message: 'Task updated', task });
+    res.json({ message: 'Task updated', task });
   } catch (error) {
     console.error('Error updating task:', error.message);
     res.status(500).json({ message: 'Server Error' });
   }
 };
+
+
 
 
 
